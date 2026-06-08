@@ -1,0 +1,23 @@
+# Python
+*.pyc
+*~
+__pycache__/
+
+# Environments
+.env
+venv/
+env/
+
+# Database
+db.sqlite3
+db.sqlite3-journal
+
+# Media / Static
+media/
+staticfiles/
+
+# IDE / OS / Logs
+.vscode/
+.idea/
+.DS_Store
+*.log
