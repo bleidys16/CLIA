@@ -1,4 +1,0 @@
-# Pyrefly configuration for CLIA project
-
-search_path = ["backend"]
-python_interpreter = "venv/Scripts/python.exe"

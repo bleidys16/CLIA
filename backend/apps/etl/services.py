@@ -79,14 +79,11 @@ class PipelineETL:
         self.df['IMC'] = self.df['IMC'].round(2)
 
         # Categorización del IMC mediante condiciones lógicas
-        condiciones_imc = [
-            (self.df['IMC'] < 18.5),
-            (self.df['IMC'] >= 18.5) & (self.df['IMC'] < 25),
-            (self.df['IMC'] >= 25) & (self.df['IMC'] < 30),
-            (self.df['IMC'] >= 30)
-        ]
-        valores_imc = ['Bajo peso', 'Normal', 'Sobrepeso', 'Obesidad']
-        self.df['clasificacion_imc'] = np.select(condiciones_imc, valores_imc, default='No evaluado')
+        self.df['clasificacion_imc'] = 'No evaluado'
+        self.df.loc[self.df['IMC'] < 18.5, 'clasificacion_imc'] = 'Bajo peso'
+        self.df.loc[(self.df['IMC'] >= 18.5) & (self.df['IMC'] < 25), 'clasificacion_imc'] = 'Normal'
+        self.df.loc[(self.df['IMC'] >= 25) & (self.df['IMC'] < 30), 'clasificacion_imc'] = 'Sobrepeso'
+        self.df.loc[self.df['IMC'] >= 30, 'clasificacion_imc'] = 'Obesidad'
 
         # 7. Conversión de Columnas Booleanas
         columnas_bool = ['antecedentes_familiares', 'fumador', 'consumo_alcohol']

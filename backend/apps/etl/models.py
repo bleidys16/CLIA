@@ -3,6 +3,8 @@ from django.contrib.auth.models import User
 
 
 class Paciente(models.Model):
+    objects = models.Manager()
+
     # Identificación básica (id_paciente del CSV como llave primaria)
     id_paciente = models.IntegerField(unique=True, primary_key=True)
     nombres = models.CharField(max_length=150)
@@ -41,6 +43,8 @@ class Paciente(models.Model):
 
 
 class HistorialETL(models.Model):
+    objects = models.Manager()
+
     # Control de auditoría para el proceso de carga masiva
     fecha = models.DateTimeField(auto_now_add=True)
     usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
@@ -49,4 +53,4 @@ class HistorialETL(models.Model):
     estado = models.CharField(max_length=50)  # 'Exitoso' o 'Fallido'
 
     def __str__(self):
-        return f"Ejecución ETL {self.id} - {self.estado} ({self.fecha})"  # pyrefly: ignore
+        return f"Ejecución ETL {self.id} - {self.estado} ({self.fecha})"
