@@ -49,8 +49,23 @@ class HistorialETL(models.Model):
     fecha = models.DateTimeField(auto_now_add=True)
     usuario = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     registros_procesados = models.IntegerField()
+    errores_encontrados = models.IntegerField(default=0)
     tiempo_ejecucion = models.FloatField()  # En segundos
     estado = models.CharField(max_length=50)  # 'Exitoso' o 'Fallido'
 
     def __str__(self):
         return f"Ejecución ETL {self.id} - {self.estado} ({self.fecha})"
+
+class Perfil(models.Model):
+    # Opciones de roles obligatorios de la guía
+    ROLE_CHOICES = [
+        ('ADMIN', 'Administrador'),
+        ('MEDICO', 'Médico'),
+        ('ANALISTA', 'Analista de Datos'),
+    ]
+    
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='perfil')
+    rol = models.CharField(max_length=15, choices=ROLE_CHOICES, default='MEDICO')
+
+    def __str__(self):
+        return f"{self.user.email} - {self.get_rol_display()}"

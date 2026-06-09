@@ -14,7 +14,7 @@ class TrainModelView(APIView):
             
             return Response({
                 "status": "success",
-                "modelo": "Random Forest Classifier - CLIA Engine",
+                "modelo": "Random Forest Classifier - VITA Engine",
                 "metricas_evaluacion": reporte_metricas
             }, status=status.HTTP_200_OK)
             

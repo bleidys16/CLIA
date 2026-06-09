@@ -7,6 +7,12 @@ document.addEventListener("DOMContentLoaded", function () {
     if (btnRunEtl) {
         btnRunEtl.addEventListener('click', ejecutarPipelineETL);
     }
+
+    // 3. Vincular la acción al botón de restablecer datos
+    const btnReset = document.getElementById('btn-reset-data');
+    if (btnReset) {
+        btnReset.addEventListener('click', resetearDataset);
+    }
 });
 
 // FUNCIÓN ASÍNCRONA PARA TRAER LOS LOGS DE AUDITORÍA DESDE EL BACKEND
@@ -15,28 +21,25 @@ async function cargarHistorialLogs() {
     if (!tableBody) return;
 
     try {
-        // Petición GET al endpoint de auditoría de tu API de Django
         const response = await fetch('/api/etl/logs/');
-        if (!response.ok) throw new Error("Incapaz de recuperar las auditorías del servidor.");
 
-        const logs = await response.json();
-        tableBody.innerHTML = ''; // Limpiar el indicador visual de carga
-
-        if (logs.length === 0) {
-            tableBody.innerHTML = `
-                <tr>
-                    <td colspan="5" class="text-center text-muted py-4">
-                        <i class="fa-solid fa-folder-open me-2"></i> No se registran ejecuciones previas del motor ETL.
-                    </td>
-                </tr>`;
+        // Si el backend responde un 404 o un error porque la tabla de logs no existe aún (sistema nuevo)
+        if (!response.ok) {
+            mostrarTablaVacia(tableBody);
             return;
         }
 
-        // Iterar y pintar cada fila usando la tipografía limpia Urbanist y badges semánticos
+        const logs = await response.json();
+        tableBody.innerHTML = '';
+
+        if (!logs || logs.length === 0) {
+            mostrarTablaVacia(tableBody);
+            return;
+        }
+
+        // Iterar y pintar cada fila si existen datos
         logs.forEach(log => {
             const fechaFormateada = new Date(log.fecha_ejecucion).toLocaleString('es-CO');
-
-            // Badge personalizado con la paleta de colores para el estado
             const estadoBadge = log.estado === 'Exitoso' || log.estado === 'Success'
                 ? '<span class="badge" style="background-color: var(--clia-wisteria); color: var(--clia-jacarta); font-weight: 600;">Completado</span>'
                 : '<span class="badge bg-danger text-white">Fallido</span>';
@@ -44,8 +47,8 @@ async function cargarHistorialLogs() {
             tableBody.innerHTML += `
                 <tr>
                     <td class="fw-bold" style="color: var(--clia-jacarta);">${fechaFormateada}</td>
-                    <td><i class="fa-solid fa-circle-check text-success me-1"></i> ${log.registros_procesados || 0} pac.</td>
-                    <td class="text-muted"><i class="fa-solid fa-triangle-exclamation text-warning me-1"></i> ${log.errores_encontrados || 0}</td>
+                    <td><i class="fa-solid fa-circle-check text-success me-1"></i> ${log.registros_procesados || 0}</td>
+                    <td class="text-muted">${log.tiempo_ejecucion ? log.tiempo_ejecucion.toFixed(2) + 's' : '—'}</td>
                     <td><small class="text-uppercase font-monospace text-secondary">${log.usuario_responsable || 'Sistema'}</small></td>
                     <td>${estadoBadge}</td>
                 </tr>
@@ -54,68 +57,132 @@ async function cargarHistorialLogs() {
 
     } catch (error) {
         console.error("Error al renderizar la tabla de auditoría:", error);
-        tableBody.innerHTML = `
-            <tr>
-                <td colspan="5" class="text-center text-danger py-4">
-                    <i class="fa-solid fa-circle-xmark me-2"></i> Error de conexión con la API de logs.
-                </td>
-            </tr>`;
+        // En lugar de romper la UI con un error crítico, asumimos un estado inicial sin cargas
+        mostrarTablaVacia(tableBody);
     }
 }
 
-// FUNCIÓN ASÍNCRONA PARA DISPARAR LA EJECUCIÓN CON PANDAS
+// Función auxiliar para mantener la consistencia visual del estado vacío
+function mostrarTablaVacia(contenedor) {
+    contenedor.innerHTML = `
+        <tr>
+            <td colspan="5" class="text-center text-muted py-4" style="font-family: 'Urbanist', sans-serif;">
+                <i class="fa-solid fa-folder-open me-2" style="color: var(--clia-wisteria);"></i> 
+                No se registran ejecuciones previas. El sistema está listo para recibir el primer dataset.
+            </td>
+        </tr>`;
+}
+
+// FUNCIÓN ASÍNCRONA PARA DISPARAR LA EJECUCIÓN CON PANDAS ENVIANDO EL CSV
 async function ejecutarPipelineETL() {
     const btn = document.getElementById('btn-run-etl');
+    const fileInput = document.getElementById('fileInput');
     const containerStatus = document.getElementById('etl-status-container');
     const spinner = document.getElementById('etl-spinner');
     const statusTitle = document.getElementById('etl-status-title');
     const statusDesc = document.getElementById('etl-status-desc');
 
-    if (!btn) return;
+    if (!btn || !fileInput || fileInput.files.length === 0) {
+        alert("Por favor, selecciona un archivo CSV antes de iniciar el proceso.");
+        return;
+    }
 
-    // Bloquear controles de inmediato para evitar que el usuario de clics repetidos
+    // Bloquear controles inmediato
     btn.disabled = true;
-    btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin me-2"></i> Procesando...`;
+    // Dejamos el texto del botón fijo, la animación va en el contenedor de estado
 
-    // Revelar el contenedor de progreso en pantalla
     containerStatus.classList.remove('d-none');
-    spinner.className = "spinner-border";
-    spinner.style.color = "var(--clia-blue-gray)";
+    spinner.className = "fa-solid fa-gears fa-spin fs-2";
+    spinner.style.color = "var(--clia-jacarta)";
     statusTitle.innerText = "Ejecutando Engine ETL...";
     statusDesc.innerText = "Pandas está extrayendo, transformando y validando la calidad del archivo clínico...";
 
+    // Preparar el archivo físico para mandarlo por HTTP Multipart
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+
     try {
-        // Petición POST al endpoint encargado de arrancar el script de Python/Pandas
-        const response = await fetch('/api/etl/run/', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
+        const data = await new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/api/etl/run/', true);
+
+            const token = localStorage.getItem('token_acceso');
+            if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+
+            xhr.onload = function () {
+                try {
+                    const d = JSON.parse(xhr.responseText);
+                    if (xhr.status >= 200 && xhr.status < 300 && (d.status === 'success' || d.status === 'Exitoso')) {
+                        resolve(d);
+                    } else {
+                        reject(new Error(d.message || 'Error en el servidor'));
+                    }
+                } catch (e) {
+                    reject(new Error('Respuesta inválida del servidor'));
+                }
+            };
+
+            xhr.onerror = function () {
+                reject(new Error('Error de conexión con el servidor'));
+            };
+
+            xhr.send(formData);
         });
 
-        const resultado = await response.json();
+        spinner.className = "fa-solid fa-circle-check text-success fs-2";
+        spinner.style.color = "";
+        statusTitle.innerText = "¡Pipeline Finalizado!";
+        statusDesc.innerText = `Carga exitosa: ${data.total_procesados || data.registros_procesados || 0} registros clínico-analíticos guardados.`;
 
-        if (response.ok && (resultado.status === 'success' || resultado.status === 'Exitoso')) {
-            // Cambiar indicador a estado de Éxito con los iconos de FontAwesome
-            spinner.className = "fa-solid fa-circle-check text-success fs-4";
-            spinner.style.color = "";
-            statusTitle.innerText = "¡Pipeline Finalizado!";
-            statusDesc.innerText = `Carga exitosa: ${resultado.total_procesados || resultado.registros_procesados} registros clínico-analíticos guardados.`;
+        fileInput.value = '';
+        document.getElementById('file-info-container').classList.add('d-none');
 
-            // Actualizar la tabla de logs automáticamente para reflejar la nueva fila sin recargar
-            await cargarHistorialLogs();
-        } else {
-            throw new Error(resultado.message || "Fallo inesperado en las reglas de transformación de datos.");
-        }
+        await cargarHistorialLogs();
 
     } catch (error) {
         console.error("Error disparando el pipeline:", error);
-        // Cambiar indicador a estado de Alerta Médica
-        spinner.className = "fa-solid fa-triangle-exclamation text-danger fs-4";
+        spinner.className = "fa-solid fa-shield-virus text-danger fs-2";
         spinner.style.color = "";
         statusTitle.innerText = "Error en el Motor ETL";
         statusDesc.innerText = error.message || "No se pudo establecer comunicación con el pipeline de datos.";
     } finally {
-        // Devolver el botón principal a su estado original
-        btn.disabled = false;
+        btn.disabled = true;
         btn.innerHTML = `<i class="fa-solid fa-play me-2"></i> Iniciar Pipeline ETL`;
+    }
+}
+
+// FUNCIÓN ASÍNCRONA PARA RESTABLECER EL DATASET (ELIMINAR DATOS)
+async function resetearDataset() {
+    const btnReset = document.getElementById('btn-reset-data');
+    if (!btnReset) return;
+
+    const confirmacion = confirm("¿Estás seguro de que deseas restablecer el dataset? Se eliminarán todos los pacientes y el historial de cargas.");
+    if (!confirmacion) return;
+
+    btnReset.disabled = true;
+    btnReset.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin me-2"></i> Restableciendo...`;
+
+    const csrfToken = document.cookie.split('; ').find(c => c.startsWith('csrftoken='))?.split('=')[1] || '';
+    try {
+        const response = await fetch('/api/etl/reset/', {
+            method: 'DELETE',
+            headers: { 'X-CSRFToken': csrfToken }
+        });
+        const resultado = await response.json();
+
+        if (response.ok && resultado.status === 'success') {
+            alert(resultado.message);
+            await cargarHistorialLogs();
+            // Redirigir al dashboard que ahora mostrará pantalla de bienvenida
+            window.location.href = '/dashboard/';
+        } else {
+            throw new Error(resultado.message || "Error al restablecer datos.");
+        }
+    } catch (error) {
+        console.error("Error al restablecer:", error);
+        alert("Error: " + error.message);
+    } finally {
+        btnReset.disabled = false;
+        btnReset.innerHTML = `<i class="fa-solid fa-rotate-left me-2"></i> Restablecer Dataset`;
     }
 }

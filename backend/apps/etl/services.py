@@ -13,16 +13,25 @@ class PipelineETL:
         self.usuario = User.objects.filter(id=usuario_id).first() if usuario_id else None
         self.start_time = None
         self.df = None
+        self.total_extraidos = 0
 
     def extract(self):
-        """Capa de Extracción (Extract): Lee el archivo Excel externo"""
+        """Capa de Extracción (Extract): Lee el archivo CSV o Excel usando Pandas"""
         self.start_time = time.time()
-        if not os.path.exists(self.file_path):
-            raise FileNotFoundError(f"El archivo en la ruta {self.file_path} no existe.")
-        
-        # CAMBIO CLAVE: Usamos read_excel en lugar de read_csv
-        self.df = pd.read_excel(self.file_path)
-        return len(self.df)
+
+        # Detectar extensión para elegir el lector de Pandas adecuado
+        nombre = self.file_path if isinstance(self.file_path, str) else self.file_path.name
+        es_excel = nombre.lower().endswith(('.xlsx', '.xls'))
+
+        if isinstance(self.file_path, str):
+            if not os.path.exists(self.file_path):
+                raise FileNotFoundError(f"El archivo en la ruta {self.file_path} no existe.")
+            self.df = pd.read_excel(self.file_path) if es_excel else pd.read_csv(self.file_path)
+        else:
+            self.df = pd.read_excel(self.file_path) if es_excel else pd.read_csv(self.file_path)
+
+        self.total_extraidos = len(self.df)
+        return self.total_extraidos
 
     def transform(self):
         """Capa de Transformación (Transform): Limpieza, estandarización y cálculos clínicos"""
@@ -152,6 +161,7 @@ class PipelineETL:
             manager_historial.create(
                 usuario=self.usuario,
                 registros_procesados=len(registros_a_insertar),
+                errores_encontrados=self.total_extraidos - len(registros_a_insertar),
                 tiempo_ejecucion=round(tiempo_final, 3),
                 estado='Exitoso'
             )
@@ -163,6 +173,7 @@ class PipelineETL:
             manager_historial.create(
                 usuario=self.usuario,
                 registros_procesados=0,
+                errores_encontrados=self.total_extraidos,
                 tiempo_ejecucion=round(tiempo_final, 3),
                 estado=f'Fallido: {str(e)}'
             )

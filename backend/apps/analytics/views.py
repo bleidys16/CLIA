@@ -17,7 +17,7 @@ class DashboardKPIsView(APIView):
             
             return Response({
                 "status": "success",
-                "plataforma": "CLIA (Clinical Intelligence & Analytics)",
+                "plataforma": "VITA (Vital Tracking in Healthcare Analytics)",
                 "kpis_consolidados": kpis,
                 "estadistica_descriptiva": estadisticas
             }, status=status.HTTP_200_OK)

@@ -1,96 +1,100 @@
 {% extends 'base.html' %}
 
-{% block title %}CLIA - Dashboard Clínico Inteligente{% endblock %}
+{% block title %}VITA - Dashboard Clínico Inteligente{% endblock %}
 
 {% block content %}
-<div class="row align-items-center mb-4">
-    <div class="col">
-        <h1 style="font-weight: 800; font-size: 2.6rem; color: var(--clia-black-coffee); margin: 0;">
-            Plataforma Analítica de Salud
-        </h1>
-        <p class="text-muted m-0 mt-1" style="font-size: 1.1rem;">
-            Indicadores en tiempo real de HealthAnalytics IPS — <span style="color: var(--clia-jacarta); font-weight: 600;">Clinical Intelligence & Analytics</span>
-        </p>
+<div class="container-fluid">
+
+    <div class="row align-items-center mb-4">
+        <div class="col">
+            <h1 style="font-weight: 800; font-size: 2.6rem; color: var(--clia-black-coffee); margin: 0;">
+                Vital Tracking in Healthcare Analytics
+            </h1>
+            <p class="text-muted m-0 mt-1" style="font-size: 1.1rem;">
+                Indicadores en tiempo real de VITA Clinical
+            </p>
+        </div>
+        <div class="col-auto">
+            <button class="btn btn-clia-refresh shadow-sm">
+                <i class="fa-solid fa-arrows-rotate me-2"></i>Actualizar Tablero
+            </button>
+        </div>
     </div>
-    <div class="col-auto">
-        <button class="btn btn-clia-refresh shadow-sm">
-            <i class="fa-solid fa-arrows-rotate me-2"></i>Actualizar Tablero
-        </button>
+
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-3">
+            <div class="kpi-card-original critico">
+                <div class="kpi-info-box">
+                    <div class="kpi-title">Pacientes Críticos</div>
+                    <div class="kpi-number" id="kpi-criticos">0</div>
+                </div>
+                <div class="kpi-icon-box" style="color: #dc3545;">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-3">
+            <div class="kpi-card-original hiper">
+                <div class="kpi-info-box">
+                    <div class="kpi-title">Hipertensos</div>
+                    <div class="kpi-number" id="kpi-hipertensos">0</div>
+                </div>
+                <div class="kpi-icon-box" style="color: #ffc107;">
+                    <i class="fa-solid fa-heart-pulse"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-3">
+            <div class="kpi-card-original diab">
+                <div class="kpi-info-box">
+                    <div class="kpi-title">Diabéticos</div>
+                    <div class="kpi-number" id="kpi-diabeticos">0</div>
+                </div>
+                <div class="kpi-icon-box" style="color: #0dcaf0;">
+                    <i class="fa-solid fa-droplet"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-3">
+            <div class="kpi-card-original fuma">
+                <div class="kpi-info-box">
+                    <div class="kpi-title">Fumadores</div>
+                    <div class="kpi-number" id="kpi-fumadores">0</div>
+                </div>
+                <div class="kpi-icon-box" style="color: #6c757d;">
+                    <i class="fa-solid fa-smoking"></i>
+                </div>
+            </div>
+        </div>
     </div>
+
+    <div class="row g-4">
+        <div class="col-12 col-md-5">
+            <div class="chart-box-original h-100">
+                <h5 class="mb-4" style="font-weight: 700; color: var(--clia-black-coffee); display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fa-solid fa-chart-pie" style="color: var(--clia-dark-blue-gray);"></i> Segmentación de Riesgo
+                </h5>
+                <div style="position: relative; height: 260px;"><canvas id="chartRiesgoTorta"></canvas></div>
+            </div>
+        </div>
+        <div class="col-12 col-md-7">
+            <div class="chart-box-original h-100">
+                <h5 class="mb-4" style="font-weight: 700; color: var(--clia-black-coffee); display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fa-solid fa-chart-bar" style="color: var(--clia-dark-blue-gray);"></i> Distribución por Pre-Diagnóstico
+                </h5>
+                <div style="position: relative; height: 260px;"><canvas id="chartDiagnosticosBarras"></canvas></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('nav-dash').classList.add('active');
+    </script>
+
 </div>
-
-<div class="row g-3 mb-4">
-    <div class="col-12 col-md-3">
-        <div class="kpi-card-original critico">
-            <div class="kpi-info-box">
-                <div class="kpi-title">Pacientes Críticos</div>
-                <div class="kpi-number" id="kpi-criticos">0</div>
-            </div>
-            <div class="kpi-icon-box" style="color: #dc3545;">
-                <i class="fa-solid fa-triangle-exclamation"></i>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-12 col-md-3">
-        <div class="kpi-card-original hiper">
-            <div class="kpi-info-box">
-                <div class="kpi-title">Hipertensos</div>
-                <div class="kpi-number" id="kpi-hipertensos">0</div>
-            </div>
-            <div class="kpi-icon-box" style="color: #ffc107;">
-                <i class="fa-solid fa-heart-pulse"></i>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-12 col-md-3">
-        <div class="kpi-card-original diab">
-            <div class="kpi-info-box">
-                <div class="kpi-title">Diabéticos</div>
-                <div class="kpi-number" id="kpi-diabeticos">0</div>
-            </div>
-            <div class="kpi-icon-box" style="color: #0dcaf0;">
-                <i class="fa-solid fa-droplet"></i>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-12 col-md-3">
-        <div class="kpi-card-original fuma">
-            <div class="kpi-info-box">
-                <div class="kpi-title">Fumadores</div>
-                <div class="kpi-number" id="kpi-fumadores">0</div>
-            </div>
-            <div class="kpi-icon-box" style="color: #6c757d;">
-                <i class="fa-solid fa-smoking"></i>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="row g-4">
-    <div class="col-12 col-md-5">
-        <div class="chart-box-original h-100">
-            <h5 class="mb-4" style="font-weight: 700; color: var(--clia-black-coffee); display: flex; align-items: center; gap: 0.5rem;">
-                <i class="fa-solid fa-chart-pie" style="color: var(--clia-dark-blue-gray);"></i> Segmentación de Riesgo
-            </h5>
-            <div style="position: relative; height: 260px;"><canvas id="chartRiesgoTorta"></canvas></div>
-        </div>
-    </div>
-    <div class="col-12 col-md-7">
-        <div class="chart-box-original h-100">
-            <h5 class="mb-4" style="font-weight: 700; color: var(--clia-black-coffee); display: flex; align-items: center; gap: 0.5rem;">
-                <i class="fa-solid fa-chart-bar" style="color: var(--clia-dark-blue-gray);"></i> Distribución por Pre-Diagnóstico
-            </h5>
-            <div style="position: relative; height: 260px;"><canvas id="chartDiagnosticosBarras"></canvas></div>
-        </div>
-    </div>
-</div>
-
-<script>
-    document.getElementById('nav-dash').classList.add('active');
-</script>
 {% endblock %}
 
 {% block extra_js %}

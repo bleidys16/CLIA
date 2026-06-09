@@ -3,8 +3,10 @@
 # Importamos la vista que ejecuta el pipeline.
 
 from django.urls import path
-from .views import RunETLView
+from .views import RunETLView, ETLLogListView, ResetDataView
 
 urlpatterns = [
     path('run/', RunETLView.as_view(), name='etl-run'),
+    path('logs/', ETLLogListView.as_view(), name='etl-logs'),
+    path('reset/', ResetDataView.as_view(), name='etl-reset'),
 ]

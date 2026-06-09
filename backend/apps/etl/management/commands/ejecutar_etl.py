@@ -3,10 +3,10 @@ from django.core.management.base import BaseCommand, CommandError
 from apps.etl.services import PipelineETL
 
 class Command(BaseCommand):
-    help = 'Ejecuta de forma secuencial el pipeline ETL de CLIA para procesar el archivo Excel clínico'
+    help = 'Ejecuta de forma secuencial el pipeline ETL de VITA para procesar el archivo Excel clínico'
 
     def handle(self, *args, **options):
-        self.stdout.write(self.style.WARNING('\n=== INICIANDO MOTOR AUTOMATIZADO ETL EN CLIA ===\n'))
+        self.stdout.write(self.style.WARNING('\n=== INICIANDO MOTOR AUTOMATIZADO ETL EN VITA ===\n'))
         
         # Construimos la ruta apuntando a backend/datasets/
         base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
@@ -15,7 +15,7 @@ class Command(BaseCommand):
         self.stdout.write(f"Buscando archivo en: {file_path}")
 
         try:
-            # Inicializar el servicio de CLIA
+            # Inicializar el servicio de VITA
             pipeline = PipelineETL(file_path=file_path)
             
             # 1. CAPA EXTRACT
