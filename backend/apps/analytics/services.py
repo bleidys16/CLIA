@@ -100,6 +100,16 @@ class IndicadoresClinicosService:
         distribucion_sexo = Paciente.objects.values('sexo').annotate(total=Count('id_paciente'))
         segmentacion_sexo = {item['sexo']: item['total'] for item in distribucion_sexo}
 
+        # 4. Conteo de fumadores
+        total_fumadores = Paciente.objects.filter(fumador=True).count()
+
+        # 5. Segmentación por pre-diagnóstico
+        distribucion_diagnostico = Paciente.objects.values('diagnostico_preliminar').annotate(total=Count('id_paciente'))
+        segmentacion_diagnostico = {}
+        for item in distribucion_diagnostico:
+            dx = item['diagnostico_preliminar'] or 'No Especificado'
+            segmentacion_diagnostico[dx] = item['total']
+
         return {
             "resumen_general": {
                 "total_pacientes_atendidos": total_pacientes,
@@ -111,5 +121,7 @@ class IndicadoresClinicosService:
                 "total_obesos": conteo_patologias['obesos']
             },
             "distribucion_riesgos_porcentaje": segmentacion_riesgo,
-            "demografia_sexo": segmentacion_sexo
+            "demografia_sexo": segmentacion_sexo,
+            "total_fumadores": total_fumadores,
+            "distribucion_diagnostico": segmentacion_diagnostico
             }

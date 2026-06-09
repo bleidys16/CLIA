@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CLIA - Dashboard Clínico Inteligente{% endblock %}</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        /* CONFIGURACIÓN ESTRICTA DE TU PALETA DE COLORES */
+        :root {
+            --clia-jacarta: #3F2A52;         /* Morado muy oscuro (Fondo de marca / Títulos) */
+            --clia-dark-blue-gray: #75619D;  /* Morado Medio (Fondo de la Sidebar) */
+            --clia-wisteria: #BEAEDB;        /* Lila Suave (Botón activo / Acentos) */
+            --clia-bright-gray: #E6EFF7;     /* Gris Azulado Claro (Fondo general de la app) */
+            --clia-black-coffee: #3A2D34;    /* Café Oscuro / Negro (Texto principal) */
+        }
+
+        body {
+            font-family: 'Urbanist', sans-serif;
+            background-color: var(--clia-bright-gray);
+            color: var(--clia-black-coffee);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* SIDEBAR MORADA IZQUIERDA */
+        .clia-sidebar {
+            width: 250px;
+            background-color: var(--clia-dark-blue-gray);
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            padding: 2rem 1rem;
+            flex-shrink: 0;
+        }
+
+        .sidebar-brand {
+            font-size: 1.8rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            margin-bottom: 2rem;
+            padding-left: 0.5rem;
+            text-decoration: none;
+            color: #ffffff !important;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .sidebar-menu a {
+            color: #ffffff;
+            text-decoration: none;
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.2s ease;
+        }
+
+        /* Botón Activo usando el color Wisteria con letras oscuras para contraste premium */
+        .sidebar-menu a.active {
+            background-color: var(--clia-wisteria);
+            color: var(--clia-black-coffee) !important;
+            font-weight: 700;
+        }
+
+        .sidebar-menu a:hover:not(.active) {
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+
+        /* CONTENEDOR PRINCIPAL DERECHO */
+        .clia-main-content {
+            flex-grow: 1;
+            padding: 2.5rem;
+            overflow-y: auto;
+        }
+
+        /* BOTÓN ACTUALIZAR TABLERO ESTILO WISTERIA */
+        .btn-clia-refresh {
+            background-color: var(--clia-wisteria);
+            color: var(--clia-black-coffee);
+            font-weight: 700;
+            border: none;
+            padding: 0.6rem 1.5rem;
+            border-radius: 12px;
+            transition: opacity 0.1s;
+        }
+
+        .btn-clia-refresh:hover {
+            opacity: 0.9;
+        }
+
+        /* TARJETAS HORIZONTALES (KPIs) CON BORDE SEMÁNTICO DISCRETO */
+        .kpi-card-original {
+            background-color: #ffffff;
+            border-radius: 16px;
+            padding: 1.25rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 105px;
+        }
+
+        .kpi-card-original.critico { border-left: 5px solid #dc3545; }
+        .kpi-card-original.hiper { border-left: 5px solid #ffc107; }
+        .kpi-card-original.diab { border-left: 5px solid #0dcaf0; }
+        .kpi-card-original.fuma { border-left: 5px solid #6c757d; }
+
+        .kpi-info-box .kpi-title {
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #6C757D;
+            margin-bottom: 0.25rem;
+        }
+
+        .kpi-info-box .kpi-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--clia-black-coffee);
+            line-height: 1;
+        }
+
+        .kpi-icon-box {
+            font-size: 2rem;
+            opacity: 0.8;
+        }
+
+        /* BLOQUES DE GRÁFICAS */
+        .chart-box-original {
+            background-color: #ffffff;
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.02);
+        }
+    </style>
+</head>
+<body>
+
+    <aside class="clia-sidebar">
+        <a href="/dashboard/" class="sidebar-brand">
+            <i class="fa-solid fa-heart-pulse"></i> CLIA
+        </a>
+        <ul class="sidebar-menu">
+            <li>
+                <a href="/dashboard/" id="nav-dash">
+                    <i class="fa-solid fa-chart-pie"></i> Dashboard
+                </a>
+            </li>
+            <li>
+                <a href="/etl/" id="nav-etl">
+                    <i class="fa-solid fa-arrows-rotate"></i> Carga ETL
+                </a>
+            </li>
+            <li class="mt-5">
+                <a href="/" style="opacity: 0.8;">
+                    <i class="fa-solid fa-right-from-bracket"></i> Salir
+                </a>
+            </li>
+        </ul>
+    </aside>
+
+    <main class="clia-main-content">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

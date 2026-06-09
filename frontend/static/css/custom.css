@@ -1,0 +1,90 @@
+:root {
+    --clia-indigo: #A88AED;
+    --clia-indigo-dark: #7B5CC4;
+    --clia-pear: #CBD83B;
+    --clia-ivory: #FFFEEC;
+    --clia-surface: #FFFFFF;
+    --clia-text-dark: #2D3748;
+    --clia-text-muted: #718096;
+    --clia-bajo: #48BB78;
+    --clia-medio: #ECC94B;
+    --clia-alto: #ED8936;
+    --clia-critico: #E53E3E;
+    --clia-jacarta: #2D1B3A;
+    --clia-wisteria: #BEAEDB;
+}
+
+body {
+    background-color: var(--clia-ivory);
+    color: var(--clia-text-dark);
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 400;
+    overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Epilogue', sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+}
+
+.kpi-number {
+    font-family: 'Urbanist', sans-serif;
+    font-weight: 800;
+    font-size: 2.5rem;
+    color: var(--clia-text-dark);
+}
+
+.clia-card {
+    background-color: var(--clia-surface);
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.clia-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+}
+
+.btn-clia-accent {
+    background-color: var(--clia-pear);
+    border-color: var(--clia-pear);
+    color: var(--clia-text-dark);
+    border-radius: 12px;
+    font-weight: 600;
+}
+.btn-clia-accent:hover {
+    background-color: #b8c830;
+    border-color: #b8c830;
+    color: var(--clia-text-dark);
+}
+
+.sidebar {
+    width: 250px;
+    min-height: 100vh;
+    background: var(--clia-indigo-dark);
+    color: #fff;
+}
+.sidebar .sidebar-brand { color: #fff; font-size: 1.25rem; }
+.sidebar .nav-link {
+    color: rgba(255,255,255,0.75);
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 4px;
+    transition: all 0.2s;
+}
+.sidebar .nav-link:hover { color: #fff; background: rgba(255,255,255,0.15); }
+.sidebar .nav-link.active { color: var(--clia-text-dark); background: var(--clia-pear); }
+
+.main-content { min-height: 100vh; padding: 24px 32px; }
+
+.chart-container canvas { width: 100% !important; height: 100% !important; }
+
+@media (max-width: 768px) {
+    .sidebar { width: 60px; padding: 10px !important; }
+    .sidebar .nav-link span, .sidebar .sidebar-brand span, .sidebar hr { display: none; }
+    .sidebar .nav-link { text-align: center; padding: 10px 0; }
+    .sidebar .nav-link i { margin: 0 !important; font-size: 1.2rem; }
+    .main-content { padding: 16px; }
+}

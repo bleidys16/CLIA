@@ -1,4 +1,5 @@
 import os
+from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -9,16 +10,11 @@ class RunETLView(APIView):
     Endpoint para ejecutar manualmente la carga masiva y limpieza del dataset clínico
     """
     def post(self, request, format=None):
-        # Para pruebas locales colocamos el archivo en una carpeta dentro de la raíz
-        # Recuerda mover tu archivo CSV a la ruta 'backend/datasets/dataset_clinico.csv'
-        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        file_path = os.path.join(base_dir, 'datasets', 'dataset_clinico.csv')
+        file_path = os.path.join(settings.BASE_DIR, 'datasets', 'dataset_clinico_etl_1800_registros.xlsx')
         
         try:
-            # Instanciamos el pipeline pasando la ruta del dataset
             pipeline = PipelineETL(file_path=file_path, usuario_id=request.user.id)
             
-            # Ejecutamos las fases secuencialmente
             filas_extraidas = pipeline.extract()
             pipeline.transform()
             exito, filas_cargadas = pipeline.load()
