@@ -36,6 +36,7 @@ class ResetDataView(View):
             pacientes_borrados = Paciente.objects.count()
             Paciente.objects.all().delete()
             HistorialETL.objects.all().delete()
+            DashboardKPIs.objects.all().delete()
             return JsonResponse({
                 "status": "success",
                 "message": f"Datos restablecidos. {pacientes_borrados} registros eliminados."

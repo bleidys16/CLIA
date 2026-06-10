@@ -3,9 +3,11 @@ import time
 import pandas as pd
 import numpy as np
 from datetime import datetime
+from statistics import median, mode
 from django.db import models, transaction
 from django.contrib.auth.models import User
-from .models import Paciente, HistorialETL
+from django.db.models import Avg, StdDev, Q
+from .models import Paciente, HistorialETL, DashboardKPIs
 
 class PipelineETL:
     def __init__(self, file_path, usuario_id=None):
@@ -150,10 +152,11 @@ class PipelineETL:
 
         # Ejecución atómica masiva corrigiendo el contexto y los llamados de objetos de Django
         try:
-            with transaction.atomic(): # Paréntesis explícitos para evitar el 'bad-context-manager'
-                # cast dinámico implícito para evitar advertencias de tipado estricto en el ORM
+            with transaction.atomic():
                 manager_paciente: models.Manager = Paciente.objects
                 manager_paciente.bulk_create(registros_a_insertar, ignore_conflicts=True)
+
+            self._calcular_y_guardar_kpis()
                 
             tiempo_final = time.time() - inicio
             
@@ -178,3 +181,47 @@ class PipelineETL:
                 estado=f'Fallido: {str(e)}'
             )
             raise e
+
+    def _calcular_y_guardar_kpis(self):
+        pacientes = Paciente.objects.all()
+        total = pacientes.count()
+        edades = list(pacientes.values_list('edad', flat=True))
+
+        stats = pacientes.aggregate(
+            edad_media=Avg('edad'),
+            edad_desviacion=StdDev('edad'),
+            glucosa_media=Avg('glucosa'),
+            glucosa_desviacion=StdDev('glucosa'),
+        )
+
+        pacientes_criticos = pacientes.filter(
+            Q(presion_sistolica__gt=180) |
+            Q(glucosa__gt=300) |
+            Q(saturacion_oxigeno__lt=85)
+        ).count()
+
+        riesgo_valores = {
+            'Bajo': 0.2,
+            'Medio': 0.5,
+            'Alto': 0.8,
+        }
+        riesgo_promedio = 0.0
+        for p in pacientes.only('riesgo_enfermedad'):
+            riesgo_promedio += riesgo_valores.get(p.riesgo_enfermedad, 0.0)
+        if total:
+            riesgo_promedio = round((riesgo_promedio / total) * 100, 2)
+
+        DashboardKPIs.objects.create(
+            total_registros=total,
+            pacientes_criticos=pacientes_criticos,
+            pacientes_hipertensos=pacientes.filter(diagnostico_preliminar__icontains='Hipertensión').count(),
+            pacientes_diabeticos=pacientes.filter(diagnostico_preliminar__icontains='Diabetes').count(),
+            pacientes_fumadores=pacientes.filter(fumador=True).count(),
+            riesgo_promedio=riesgo_promedio,
+            edad_media=stats['edad_media'] or 0.0,
+            edad_mediana=median(edades) if edades else 0.0,
+            edad_moda=mode(edades) if edades else 0.0,
+            edad_desviacion=stats['edad_desviacion'] or 0.0,
+            glucosa_media=stats['glucosa_media'] or 0.0,
+            glucosa_desviacion=stats['glucosa_desviacion'] or 0.0,
+        )
