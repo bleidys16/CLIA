@@ -8,3 +8,9 @@ def dashboard_view(request):
 
 def etl_view(request):
     return render(request, 'etl.html')
+
+def pacientes_view(request):
+    return render(request, 'pacientes.html')
+
+def ml_modeling_view(request):
+    return render(request, 'ml_modeling.html')

@@ -3,9 +3,11 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!token) return;
 
     cargarDatosDashboard(token);
+    cargarMetricasMachineLearning(token);
 
     document.getElementById('btn-refresh-dashboard')?.addEventListener('click', function() {
         cargarDatosDashboard(token);
+        cargarMetricasMachineLearning(token);
     });
 });
 
@@ -74,5 +76,38 @@ function inicializarGraficaLineas(descriptiva) {
         colors: ['#4b306b', '#00d1b2']
     };
     const chart = new ApexCharts(document.querySelector("#chart-lineas"), options);
+    chart.render();
+}
+
+async function cargarMetricasMachineLearning(token) {
+    try {
+        const response = await fetch('/api/ml/model/metrics/', {
+            method: 'GET',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await response.json();
+
+        if (response.ok && data.modelo_entrenado) {
+            document.getElementById('ml-accuracy').innerText = `${data.accuracy}%`;
+            document.getElementById('ml-precision').innerText = `${data.precision}%`;
+            document.getElementById('ml-recall').innerText = `${data.recall}%`;
+            document.getElementById('ml-f1').innerText = `${data.f1_score}%`;
+
+            inicializarHeatmap(data.heatmap);
+        }
+    } catch (error) {
+        console.error("Error al cargar métricas de ML:", error);
+    }
+}
+
+function inicializarHeatmap(heatmapData) {
+    const options = {
+        chart: { type: 'heatmap', height: 280, toolbar: { show: false } },
+        dataLabels: { enabled: true, style: { colors: ['#fff'] } },
+        colors: ['#4b306b'],
+        series: heatmapData,
+        xaxis: { type: 'category' }
+    };
+    const chart = new ApexCharts(document.querySelector("#chart-heatmap"), options);
     chart.render();
 }

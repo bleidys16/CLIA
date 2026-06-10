@@ -126,7 +126,17 @@
                         <ul class="nav flex-column gap-2">
                             <li class="nav-item">
                                 <a class="nav-link nav-link-vita" id="nav-dashboard" href="/dashboard/">
-                                    <i class="fa-solid fa-chart-pie me-2"></i> Dashboard
+                                    <i class="fa-solid fa-house-medical me-2"></i> Dashboard
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link nav-link-vita" id="nav-pacientes" href="/pacientes/">
+                                    <i class="fa-solid fa-hospital-user me-2"></i> Pacientes
+                                </a>
+                            </li>
+                            <li class="nav-item d-none" id="menu-ml">
+                                <a class="nav-link nav-link-vita" id="nav-ml" href="/ml-modeling/">
+                                    <i class="fa-solid fa-brain me-2"></i> Modelado IA
                                 </a>
                             </li>
                             <li class="nav-item d-none" id="menu-cargar-dataset">
@@ -171,6 +181,7 @@
 
                         if (userData.rol === 'ADMIN' || userData.rol === 'ANALISTA') {
                             document.getElementById('menu-cargar-dataset').classList.remove('d-none');
+                            document.getElementById('menu-ml').classList.remove('d-none');
                         }
                     } else {
                         ejecutarLogout();

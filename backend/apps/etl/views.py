@@ -10,6 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 from .services import PipelineETL
 from .models import Paciente, HistorialETL, DashboardKPIs
 from .analytics import calcular_analitica_dataset
+from apps.machine_learning.services import MotorPredictivoVITA
 
 
 
@@ -68,6 +69,11 @@ class RunETLView(APIView):
             pipeline.transform()
             exito, filas_cargadas = pipeline.load()
 
+            try:
+                MotorPredictivoVITA.entrenar_pipeline_ml(pipeline.df)
+            except Exception as ml_error:
+                pass
+
             return Response({
                 "status": "success",
                 "message": "Proceso ETL ejecutado con éxito en VITA.",
@@ -82,6 +88,29 @@ class RunETLView(APIView):
                 "status": "error",
                 "message": f"Ocurrió un error crítico durante el procesamiento: {str(e)}"
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class PacienteListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
+        pacientes = Paciente.objects.all().order_by('id_paciente')
+        data = []
+        for p in pacientes:
+            data.append({
+                "id_paciente": p.id_paciente,
+                "nombres": p.nombres,
+                "apellidos": p.apellidos,
+                "edad": p.edad,
+                "sexo": p.sexo,
+                "imc": p.imc,
+                "presion_sistolica": p.presion_sistolica,
+                "glucosa": p.glucosa,
+                "saturacion_oxigeno": p.saturacion_oxigeno,
+                "diagnostico_preliminar": p.diagnostico_preliminar,
+                "riesgo_enfermedad": p.riesgo_enfermedad,
+            })
+        return Response(data, status=status.HTTP_200_OK)
 
 
 class DashboardAnalyticsView(APIView):

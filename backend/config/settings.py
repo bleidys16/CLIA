@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'apps.etl',
     'apps.frontend',
+    'apps.machine_learning',
 ]
 
 MIDDLEWARE = [

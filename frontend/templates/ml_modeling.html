@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %}Modelado IA | VITA Clinical{% endblock %}
+
+{% block content %}
+<h2 class="fw-bold mb-4" style="font-family: 'Epilogue'; color: var(--clia-jacarta);">
+    Monitor de Machine Learning (Random Forest)
+</h2>
+
+<div class="row g-4 mt-2">
+    <div class="col-12 col-md-5">
+        <div class="card p-4 border-0 shadow-sm rounded-4 bg-white h-100">
+            <h5 class="fw-bold mb-4" style="color: var(--clia-jacarta);">
+                <i class="fa-solid fa-brain me-2 text-primary"></i> Rendimiento del Predictor (Scikit-Learn)
+            </h5>
+            <div class="d-flex flex-column gap-3">
+                <div class="d-flex justify-content-between border-bottom pb-2">
+                    <span class="text-muted">Exactitud (Accuracy)</span>
+                    <strong class="text-success" id="ml-accuracy">0%</strong>
+                </div>
+                <div class="d-flex justify-content-between border-bottom pb-2">
+                    <span class="text-muted">Precisión (Precision)</span>
+                    <strong style="color: var(--clia-jacarta);" id="ml-precision">0%</strong>
+                </div>
+                <div class="d-flex justify-content-between border-bottom pb-2">
+                    <span class="text-muted">Sensibilidad (Recall)</span>
+                    <strong style="color: var(--clia-jacarta);" id="ml-recall">0%</strong>
+                </div>
+                <div class="d-flex justify-content-between pb-2">
+                    <span class="text-muted">Puntaje F1 (F1-Score)</span>
+                    <strong style="color: var(--clia-wisteria);" id="ml-f1">0%</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-7">
+        <div class="card p-4 border-0 shadow-sm rounded-4 bg-white">
+            <h5 class="fw-bold mb-3" style="color: var(--clia-jacarta);">
+                <i class="fa-solid fa-border-all me-2 text-warning"></i> Matriz de Confusión (2x2)
+            </h5>
+            <div id="chart-heatmap"></div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+<script>
+    document.getElementById('nav-ml').classList.add('active');
+
+    document.addEventListener("DOMContentLoaded", async function() {
+        const token = localStorage.getItem('token_acceso');
+        if (!token) return;
+
+        try {
+            const response = await fetch('/api/ml/model/metrics/', {
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await response.json();
+
+            if (response.ok && data.modelo_entrenado) {
+                document.getElementById('ml-accuracy').innerText = `${data.accuracy}%`;
+                document.getElementById('ml-precision').innerText = `${data.precision}%`;
+                document.getElementById('ml-recall').innerText = `${data.recall}%`;
+                document.getElementById('ml-f1').innerText = `${data.f1_score}%`;
+
+                const heatmapOptions = {
+                    chart: { type: 'heatmap', height: 280, toolbar: { show: false } },
+                    dataLabels: { enabled: true, style: { colors: ['#fff'] } },
+                    colors: ['#4b306b'],
+                    series: data.heatmap,
+                    xaxis: { type: 'category' }
+                };
+                const chart = new ApexCharts(document.querySelector("#chart-heatmap"), heatmapOptions);
+                chart.render();
+            } else {
+                document.querySelector('.card .d-flex.flex-column').innerHTML = `
+                    <div class="text-center py-5 text-muted">
+                        <i class="fa-solid fa-robot fa-3x mb-3" style="color: var(--clia-wisteria);"></i>
+                        <p class="mb-0">Aún no se ha entrenado ningún modelo.</p>
+                        <small>Subí un dataset desde la sección ETL para entrenar el predictor automáticamente.</small>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error("Error al cargar métricas de ML:", error);
+        }
+    });
+</script>
+{% endblock %}

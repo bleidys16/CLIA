@@ -93,3 +93,21 @@ class DashboardKPIs(models.Model):
 
     class Meta:
         ordering = ['-fecha_calculo']
+
+class MetricasModeloML(models.Model):
+    fecha_entrenamiento = models.DateTimeField(auto_now_add=True)
+    
+    # Métricas Obligatorias de la Guía
+    accuracy = models.FloatField()
+    precision = models.FloatField()
+    recall = models.FloatField()
+    f1_score = models.FloatField()
+    
+    # Matriz de Confusión 2x2 serializada como JSON (VP, FP, FN, VN)
+    matriz_confusion = models.JSONField() 
+    
+    # Campo binario o ruta para guardar el archivo del modelo entrenado (.pkl) si es necesario
+    modelo_activo = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['-fecha_entrenamiento']
