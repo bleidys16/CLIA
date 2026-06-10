@@ -1,12 +1,15 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.permissions import AllowAny
 from apps.analytics.services import IndicadoresClinicosService
 
 class DashboardKPIsView(APIView):
     """
     Endpoint para extraer las estadísticas descriptivas y los KPIs clínicos consolidados de la IPS
     """
+    permission_classes = [AllowAny]
+
     def get(self, request, format=None):
         try:
             service = IndicadoresClinicosService()

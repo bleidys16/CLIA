@@ -4,10 +4,12 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from .permissions import IsAdministrador, IsAnalista
 from django.views import View
+from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from .services import PipelineETL
 from .models import Paciente, HistorialETL
+
 
 @method_decorator(csrf_exempt, name='dispatch')
 class ETLLogListView(View):
@@ -23,6 +25,7 @@ class ETLLogListView(View):
                 'estado': h.estado,
             })
         return JsonResponse(logs_records, safe=False, status=200)
+
 
 @method_decorator(csrf_exempt, name='dispatch')
 class ResetDataView(View):
@@ -40,6 +43,7 @@ class ResetDataView(View):
                 "status": "error",
                 "message": f"Error al restablecer datos: {str(e)}"
             }, status=500)
+
 
 class RunETLView(APIView):
     permission_classes = [IsAuthenticated, (IsAdministrador | IsAnalista)]
@@ -75,3 +79,17 @@ class RunETLView(APIView):
                 "status": "error",
                 "message": f"Ocurrió un error crítico durante el procesamiento: {str(e)}"
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class AuthMeView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        rol = user.perfil.rol if hasattr(user, 'perfil') else None
+        return Response({
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "rol": rol,
+        })
