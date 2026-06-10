@@ -15,77 +15,97 @@
             </p>
         </div>
         <div class="col-auto">
-            <button class="btn btn-clia-refresh shadow-sm">
+            <button class="btn btn-clia-refresh shadow-sm" id="btn-refresh-dashboard">
                 <i class="fa-solid fa-arrows-rotate me-2"></i>Actualizar Tablero
             </button>
         </div>
     </div>
 
-    <div class="row g-3 mb-4">
-        <div class="col-12 col-md-3">
-            <div class="kpi-card-original critico">
-                <div class="kpi-info-box">
-                    <div class="kpi-title">Pacientes Críticos</div>
-                    <div class="kpi-number" id="kpi-criticos">0</div>
-                </div>
-                <div class="kpi-icon-box" style="color: #dc3545;">
-                    <i class="fa-solid fa-triangle-exclamation"></i>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-12 col-md-3">
-            <div class="kpi-card-original hiper">
-                <div class="kpi-info-box">
-                    <div class="kpi-title">Hipertensos</div>
-                    <div class="kpi-number" id="kpi-hipertensos">0</div>
-                </div>
-                <div class="kpi-icon-box" style="color: #ffc107;">
-                    <i class="fa-solid fa-heart-pulse"></i>
+    <div class="row g-4 mb-4">
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="card p-3 border-0 shadow-sm rounded-4 bg-white">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="p-3 rounded-circle bg-opacity-10 bg-primary" style="color: var(--clia-jacarta);">
+                        <i class="fa-solid fa-users fs-4"></i>
+                    </div>
+                    <div>
+                        <span class="text-muted small d-block">Total Registros</span>
+                        <h3 class="fw-bold m-0" id="kpi-total">0</h3>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-12 col-md-3">
-            <div class="kpi-card-original diab">
-                <div class="kpi-info-box">
-                    <div class="kpi-title">Diabéticos</div>
-                    <div class="kpi-number" id="kpi-diabeticos">0</div>
-                </div>
-                <div class="kpi-icon-box" style="color: #0dcaf0;">
-                    <i class="fa-solid fa-droplet"></i>
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="card p-3 border-0 shadow-sm rounded-4 bg-white">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="p-3 rounded-circle text-danger bg-danger bg-opacity-10">
+                        <i class="fa-solid fa-triangle-exclamation fs-4"></i>
+                    </div>
+                    <div>
+                        <span class="text-muted small d-block">Pacientes Críticos</span>
+                        <h3 class="fw-bold m-0 text-danger" id="kpi-criticos">0</h3>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-12 col-md-3">
-            <div class="kpi-card-original fuma">
-                <div class="kpi-info-box">
-                    <div class="kpi-title">Fumadores</div>
-                    <div class="kpi-number" id="kpi-fumadores">0</div>
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="card p-3 border-0 shadow-sm rounded-4 bg-white">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="p-3 rounded-circle text-warning bg-warning bg-opacity-10">
+                        <i class="fa-solid fa-droplet fs-4"></i>
+                    </div>
+                    <div>
+                        <span class="text-muted small d-block">Hipertensos / Diabéticos</span>
+                        <h3 class="fw-bold m-0" style="color: var(--clia-jacarta);" id="kpi-cronicos">0 / 0</h3>
+                    </div>
                 </div>
-                <div class="kpi-icon-box" style="color: #6c757d;">
-                    <i class="fa-solid fa-smoking"></i>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-lg-3">
+            <div class="card p-3 border-0 shadow-sm rounded-4 bg-white">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="p-3 rounded-circle" style="background-color: var(--clia-wisteria); color: var(--clia-jacarta);">
+                        <i class="fa-solid fa-heart-pulse fs-4"></i>
+                    </div>
+                    <div>
+                        <span class="text-muted small d-block">Riesgo Poblacional</span>
+                        <h3 class="fw-bold m-0" id="kpi-riesgo">0%</h3>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row g-4">
-        <div class="col-12 col-md-5">
-            <div class="chart-box-original h-100">
-                <h5 class="mb-4" style="font-weight: 700; color: var(--clia-black-coffee); display: flex; align-items: center; gap: 0.5rem;">
-                    <i class="fa-solid fa-chart-pie" style="color: var(--clia-dark-blue-gray);"></i> Segmentación de Riesgo
+    <div class="row g-4 mb-4">
+        <div class="col-12 col-lg-8">
+            <div class="card p-4 border-0 shadow-sm rounded-4 bg-white">
+                <h5 class="fw-bold mb-3" style="color: var(--clia-jacarta);">
+                    <i class="fa-solid fa-chart-line me-2 text-primary"></i> Tendencias Clínicas: Glucosa vs Edad
                 </h5>
-                <div style="position: relative; height: 260px;"><canvas id="chartRiesgoTorta"></canvas></div>
+                <div id="chart-lineas"></div>
             </div>
         </div>
-        <div class="col-12 col-md-7">
-            <div class="chart-box-original h-100">
-                <h5 class="mb-4" style="font-weight: 700; color: var(--clia-black-coffee); display: flex; align-items: center; gap: 0.5rem;">
-                    <i class="fa-solid fa-chart-bar" style="color: var(--clia-dark-blue-gray);"></i> Distribución por Pre-Diagnóstico
+
+        <div class="col-12 col-lg-4">
+            <div class="card p-4 border-0 shadow-sm rounded-4 bg-white h-100">
+                <h5 class="fw-bold mb-3" style="color: var(--clia-jacarta);">
+                    <i class="fa-solid fa-chart-pie me-2" style="color: var(--clia-wisteria);"></i> Prevalencia de Riesgo
                 </h5>
-                <div style="position: relative; height: 260px;"><canvas id="chartDiagnosticosBarras"></canvas></div>
+                <div id="chart-torta"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="card p-4 border-0 shadow-sm rounded-4 bg-white">
+                <h5 class="fw-bold mb-3" style="color: var(--clia-jacarta);">
+                    <i class="fa-solid fa-chart-column me-2 text-success"></i> Segmentación y Distribución Epidemiológica
+                </h5>
+                <div id="chart-barras"></div>
             </div>
         </div>
     </div>
@@ -98,5 +118,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="/static/js/charts.js"></script>
+<script src="/static/js/dashboard_render.js"></script>
 {% endblock %}
