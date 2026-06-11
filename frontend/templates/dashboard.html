@@ -29,7 +29,7 @@
                         <i class="fa-solid fa-users fs-4"></i>
                     </div>
                     <div>
-                        <span class="text-muted small d-block">Total Registros</span>
+                        <span class="text-muted small d-block">Total de Pacientes Procesados</span>
                         <h3 class="fw-bold m-0" id="kpi-total">0</h3>
                     </div>
                 </div>
@@ -43,7 +43,7 @@
                         <i class="fa-solid fa-triangle-exclamation fs-4"></i>
                     </div>
                     <div>
-                        <span class="text-muted small d-block">Pacientes Críticos</span>
+                        <span class="text-muted small d-block">Pacientes Críticos Detectados</span>
                         <h3 class="fw-bold m-0 text-danger" id="kpi-criticos">0</h3>
                     </div>
                 </div>
@@ -57,8 +57,8 @@
                         <i class="fa-solid fa-droplet fs-4"></i>
                     </div>
                     <div>
-                        <span class="text-muted small d-block">Hipertensos / Diabéticos</span>
-                        <h3 class="fw-bold m-0" style="color: var(--clia-jacarta);" id="kpi-cronicos">0 / 0</h3>
+                        <span class="text-muted small d-block">Edad Promedio</span>
+                        <h3 class="fw-bold m-0" style="color: var(--clia-jacarta);" id="kpi-edad">0</h3>
                     </div>
                 </div>
             </div>
@@ -71,7 +71,7 @@
                         <i class="fa-solid fa-heart-pulse fs-4"></i>
                     </div>
                     <div>
-                        <span class="text-muted small d-block">Riesgo Poblacional</span>
+                        <span class="text-muted small d-block">Índice de Riesgo Institucional</span>
                         <h3 class="fw-bold m-0" id="kpi-riesgo">0%</h3>
                     </div>
                 </div>
@@ -83,7 +83,7 @@
         <div class="col-12 col-lg-8">
             <div class="card p-4 border-0 shadow-sm rounded-4 bg-white">
                 <h5 class="fw-bold mb-3" style="color: var(--clia-jacarta);">
-                    <i class="fa-solid fa-chart-line me-2 text-primary"></i> Tendencias Clínicas: Glucosa vs Edad
+                    <i class="fa-solid fa-chart-line me-2 text-primary"></i> Tendencia de Signos Vitales promedio
                 </h5>
                 <div id="chart-lineas"></div>
             </div>
@@ -92,7 +92,7 @@
         <div class="col-12 col-lg-4">
             <div class="card p-4 border-0 shadow-sm rounded-4 bg-white h-100">
                 <h5 class="fw-bold mb-3" style="color: var(--clia-jacarta);">
-                    <i class="fa-solid fa-chart-pie me-2" style="color: var(--clia-wisteria);"></i> Prevalencia de Riesgo
+                    <i class="fa-solid fa-chart-pie me-2" style="color: var(--clia-wisteria);"></i> Distribución por Género y Riesgo
                 </h5>
                 <div id="chart-torta"></div>
             </div>
@@ -103,46 +103,9 @@
         <div class="col-12">
             <div class="card p-4 border-0 shadow-sm rounded-4 bg-white">
                 <h5 class="fw-bold mb-3" style="color: var(--clia-jacarta);">
-                    <i class="fa-solid fa-chart-column me-2 text-success"></i> Segmentación y Distribución Epidemiológica
+                    <i class="fa-solid fa-chart-column me-2 text-success"></i> Prevalencia por Rangos de Edad
                 </h5>
                 <div id="chart-barras"></div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row g-4 mt-2">
-        <div class="col-12 col-md-5">
-            <div class="card p-4 border-0 shadow-sm rounded-4 bg-white h-100">
-                <h5 class="fw-bold mb-4" style="color: var(--clia-jacarta);">
-                    <i class="fa-solid fa-brain me-2 text-primary"></i> Rendimiento del Predictor (Scikit-Learn)
-                </h5>
-                <div class="d-flex flex-column gap-3">
-                    <div class="d-flex justify-content-between border-bottom pb-2">
-                        <span class="text-muted">Exactitud (Accuracy)</span>
-                        <strong class="text-success" id="ml-accuracy">0%</strong>
-                    </div>
-                    <div class="d-flex justify-content-between border-bottom pb-2">
-                        <span class="text-muted">Precisión (Precision)</span>
-                        <strong style="color: var(--clia-jacarta);" id="ml-precision">0%</strong>
-                    </div>
-                    <div class="d-flex justify-content-between border-bottom pb-2">
-                        <span class="text-muted">Sensibilidad (Recall)</span>
-                        <strong style="color: var(--clia-jacarta);" id="ml-recall">0%</strong>
-                    </div>
-                    <div class="d-flex justify-content-between pb-2">
-                        <span class="text-muted">Puntaje F1 (F1-Score)</span>
-                        <strong style="color: var(--clia-wisteria);" id="ml-f1">0%</strong>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-12 col-md-7">
-            <div class="card p-4 border-0 shadow-sm rounded-4 bg-white">
-                <h5 class="fw-bold mb-3" style="color: var(--clia-jacarta);">
-                    <i class="fa-solid fa-border-all me-2 text-warning"></i> Matriz de Confusión (2x2)
-                </h5>
-                <div id="chart-heatmap"></div>
             </div>
         </div>
     </div>

@@ -1,6 +1,6 @@
 from django.urls import path
 from django.views.generic import RedirectView
-from .views import login_view, dashboard_view, etl_view, pacientes_view, ml_modeling_view
+from .views import login_view, dashboard_view, etl_view, pacientes_view, ml_modeling_view, estadisticas_view
 from apps.analytics.views import DashboardKPIsView
 
 urlpatterns = [
@@ -9,5 +9,6 @@ urlpatterns = [
     path('etl/', etl_view, name='etl'),
     path('pacientes/', pacientes_view, name='pacientes'),
     path('ml-modeling/', ml_modeling_view, name='ml-modeling'),
+    path('estadisticas/', estadisticas_view, name='estadisticas'),
     path('dashboard/kpis/', DashboardKPIsView.as_view(), name='dashboard-kpis'),
 ]

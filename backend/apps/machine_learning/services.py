@@ -80,17 +80,22 @@ class MotorPredictivoVITA:
 
     @staticmethod
     def entrenar_pipeline_ml(df: pd.DataFrame):
-        columnas_predictoras = ['edad', 'imc', 'glucosa', 'colesterol', 'presion_sistolica', 'frecuencia_cardiaca', 'fumador']
-        columna_objetivo = 'enfermedad'
+        columnas_predictoras = ['edad', 'IMC', 'glucosa', 'colesterol', 'presión_sistólica', 'frecuencia_cardiaca', 'fumador']
+        columna_objetivo = 'riesgo_enfermedad'
 
         for col in columnas_predictoras + [columna_objetivo]:
             if col not in df.columns:
                 raise ValueError(f"Falta la columna requerida para ML: {col}")
 
-        X = df[columnas_predictoras]
+        X = df[columnas_predictoras].copy()
         y = df[columna_objetivo]
 
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
+        if X['fumador'].dtype == bool:
+            X['fumador'] = X['fumador'].astype(int)
+
+        y_binaria = y.map({'Bajo': 0, 'Medio': 1, 'Alto': 1, 'Crítico': 1}).fillna(0).astype(int)
+
+        X_train, X_test, y_train, y_test = train_test_split(X, y_binaria, test_size=0.2, random_state=42, stratify=y_binaria)
 
         scaler = StandardScaler()
         X_train_scaled = scaler.fit_transform(X_train)
@@ -108,10 +113,10 @@ class MotorPredictivoVITA:
 
         cm = confusion_matrix(y_test, y_pred)
         matriz_estructurada = {
-            "verdaderos_negativos": int(cm[0][0]),
-            "falsos_positivos": int(cm[0][1]),
-            "falsos_negativos": int(cm[1][0]),
-            "verdaderos_positivos": int(cm[1][1])
+            "verdaderos_negativos": int(cm[0][0]) if cm.shape[0] > 0 and cm.shape[1] > 0 else 0,
+            "falsos_positivos": int(cm[0][1]) if cm.shape[0] > 0 and cm.shape[1] > 1 else 0,
+            "falsos_negativos": int(cm[1][0]) if cm.shape[0] > 1 and cm.shape[1] > 0 else 0,
+            "verdaderos_positivos": int(cm[1][1]) if cm.shape[0] > 1 and cm.shape[1] > 1 else 0
         }
 
         MetricasModeloML.objects.update(modelo_activo=False)

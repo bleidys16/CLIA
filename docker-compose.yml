@@ -28,6 +28,7 @@ services:
              python manage.py runserver 0.0.0.0:8000"
     volumes:
       - ./backend:/app
+      - ./frontend:/frontend
     ports:
       - "8000:8000"
     environment:
@@ -35,6 +36,11 @@ services:
       - SECRET_KEY=django-insecure-docker-local-key
       - ALLOWED_HOSTS=localhost,127.0.0.1
       - DATABASE_URL=postgres://postgres:admin_password_segura@db:5432/health_clinical_db
+      - DB_NAME=health_clinical_db
+      - DB_USER=postgres
+      - DB_PASSWORD=admin_password_segura
+      - DB_HOST=db
+      - DB_PORT=5432
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
     depends_on:
@@ -48,7 +54,15 @@ services:
     volumes:
       - ./backend:/app
     environment:
+      - DEBUG=True
+      - SECRET_KEY=django-insecure-docker-local-key
+      - ALLOWED_HOSTS=localhost,127.0.0.1
       - DATABASE_URL=postgres://postgres:admin_password_segura@db:5432/health_clinical_db
+      - DB_NAME=health_clinical_db
+      - DB_USER=postgres
+      - DB_PASSWORD=admin_password_segura
+      - DB_HOST=db
+      - DB_PORT=5432
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
     depends_on:

@@ -1,3 +1,4 @@
+import logging
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -11,6 +12,9 @@ from .services import PipelineETL
 from .models import Paciente, HistorialETL, DashboardKPIs
 from .analytics import calcular_analitica_dataset
 from apps.machine_learning.services import MotorPredictivoVITA
+import pandas as pd
+
+logger = logging.getLogger(__name__)
 
 
 
@@ -72,7 +76,7 @@ class RunETLView(APIView):
             try:
                 MotorPredictivoVITA.entrenar_pipeline_ml(pipeline.df)
             except Exception as ml_error:
-                pass
+                logger.warning(f"Entrenamiento ML automático falló: {ml_error}")
 
             return Response({
                 "status": "success",
@@ -107,6 +111,7 @@ class PacienteListView(APIView):
                 "presion_sistolica": p.presion_sistolica,
                 "glucosa": p.glucosa,
                 "saturacion_oxigeno": p.saturacion_oxigeno,
+                "frecuencia_cardiaca": p.frecuencia_cardiaca,
                 "diagnostico_preliminar": p.diagnostico_preliminar,
                 "riesgo_enfermedad": p.riesgo_enfermedad,
             })
@@ -192,3 +197,23 @@ class DashboardDataView(APIView):
                 }
             }
         }, status=status.HTTP_200_OK)
+
+
+class EstadisticasPandasView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
+        pacientes = Paciente.objects.all().values(
+            'edad', 'presion_sistolica', 'glucosa', 'imc', 'frecuencia_cardiaca'
+        )
+        if not pacientes.exists():
+            return Response({"error": "No hay datos"}, status=status.HTTP_404_NOT_FOUND)
+        
+        df = pd.DataFrame(list(pacientes))
+        df = df.apply(pd.to_numeric, errors='coerce')
+        
+        # Calcula estadísticas
+        stats_df = df.describe().fillna(0)
+        
+        # Retorna el diccionario anidado generado por pandas
+        return Response(stats_df.to_dict(), status=status.HTTP_200_OK)

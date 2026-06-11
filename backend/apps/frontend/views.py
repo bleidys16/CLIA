@@ -14,3 +14,6 @@ def pacientes_view(request):
 
 def ml_modeling_view(request):
     return render(request, 'ml_modeling.html')
+
+def estadisticas_view(request):
+    return render(request, 'estadisticas.html')

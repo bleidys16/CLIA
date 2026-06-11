@@ -3,111 +3,134 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!token) return;
 
     cargarDatosDashboard(token);
-    cargarMetricasMachineLearning(token);
 
     document.getElementById('btn-refresh-dashboard')?.addEventListener('click', function() {
         cargarDatosDashboard(token);
-        cargarMetricasMachineLearning(token);
     });
 });
 
 async function cargarDatosDashboard(token) {
     try {
-        const response = await fetch('/api/etl/analytics/dashboard/', {
-            method: 'GET',
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const [responseKpi, responsePacientes] = await Promise.all([
+            fetch('/api/etl/analytics/dashboard/', {
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${token}` }
+            }),
+            fetch('/api/etl/pacientes/', {
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+        ]);
 
-        const data = await response.json();
+        const dataKpi = await responseKpi.json();
+        let pacientes = [];
+        if (responsePacientes.ok) {
+            pacientes = await responsePacientes.json();
+        }
 
-        if (response.ok && !data.sistema_vacio) {
-            document.getElementById('kpi-total').innerText = data.kpis.total_registros;
-            document.getElementById('kpi-criticos').innerText = data.kpis.pacientes_criticos;
-            document.getElementById('kpi-cronicos').innerText = `${data.kpis.pacientes_hipertensos} / ${data.kpis.pacientes_diabeticos}`;
-            document.getElementById('kpi-riesgo').innerText = `${data.kpis.riesgo_promedio}%`;
+        if (responseKpi.ok && !dataKpi.sistema_vacio) {
+            document.getElementById('kpi-total').innerText = dataKpi.kpis.total_registros;
+            document.getElementById('kpi-criticos').innerText = dataKpi.kpis.pacientes_criticos;
+            document.getElementById('kpi-edad').innerText = dataKpi.estadistica_descriptiva.edad.media;
+            document.getElementById('kpi-riesgo').innerText = `${dataKpi.kpis.riesgo_promedio}%`;
 
-            inicializarGraficaBarras(data.kpis);
-            inicializarGraficaTorta(data.kpis);
-            inicializarGraficaLineas(data.estadistica_descriptiva);
+            if (pacientes.length > 0) {
+                inicializarGraficaBarras(pacientes);
+                inicializarGraficaLineas(pacientes);
+                inicializarGraficaTorta(pacientes);
+            }
         }
     } catch (error) {
         console.error("Error al renderizar las analíticas de ApexCharts:", error);
     }
 }
 
-function inicializarGraficaBarras(kpis) {
+// Global chart instances to destroy them before re-rendering
+let chartBarras = null;
+let chartLineas = null;
+let chartTorta = null;
+
+function inicializarGraficaBarras(pacientes) {
+    let r1=0, r2=0, r3=0, r4=0;
+    pacientes.forEach(p => {
+        if (p.edad < 30) r1++;
+        else if (p.edad <= 45) r2++;
+        else if (p.edad <= 60) r3++;
+        else r4++;
+    });
+
     const options = {
         chart: { type: 'bar', height: 320, toolbar: { show: true } },
         plotOptions: { bar: { borderRadius: 6, distributed: true } },
         colors: ['#4267B2', '#FF4560', '#00E396', '#FEB019'],
         series: [{
             name: 'Pacientes',
-            data: [kpis.total_registros, kpis.pacientes_criticos, kpis.pacientes_hipertensos, kpis.pacientes_diabeticos]
+            data: [r1, r2, r3, r4]
         }],
         xaxis: {
-            categories: ['Base Total', 'Estado Crítico', 'Hipertensión', 'Diabetes']
+            categories: ['Menores de 30', '30 a 45', '46 a 60', 'Mayores de 60']
         }
     };
-    const chart = new ApexCharts(document.querySelector("#chart-barras"), options);
-    chart.render();
+    if (chartBarras) chartBarras.destroy();
+    chartBarras = new ApexCharts(document.querySelector("#chart-barras"), options);
+    chartBarras.render();
 }
 
-function inicializarGraficaTorta(kpis) {
-    const options = {
-        chart: { type: 'donut', height: 320 },
-        labels: ['Críticos', 'Estables (Resto)'],
-        series: [kpis.pacientes_criticos, kpis.total_registros - kpis.pacientes_criticos],
-        colors: ['#FF4560', '#00E396'],
-        legend: { position: 'bottom' }
+function inicializarGraficaLineas(pacientes) {
+    const ageGroups = {
+        '<30': { ps: 0, glu: 0, fc: 0, count: 0 },
+        '30-45': { ps: 0, glu: 0, fc: 0, count: 0 },
+        '46-60': { ps: 0, glu: 0, fc: 0, count: 0 },
+        '>60': { ps: 0, glu: 0, fc: 0, count: 0 }
     };
-    const chart = new ApexCharts(document.querySelector("#chart-torta"), options);
-    chart.render();
-}
 
-function inicializarGraficaLineas(descriptiva) {
+    pacientes.forEach(p => {
+        let key = '';
+        if (p.edad < 30) key = '<30';
+        else if (p.edad <= 45) key = '30-45';
+        else if (p.edad <= 60) key = '46-60';
+        else key = '>60';
+
+        ageGroups[key].ps += (p.presion_sistolica || 0);
+        ageGroups[key].glu += (p.glucosa || 0);
+        ageGroups[key].fc += (p.frecuencia_cardiaca || 0); // Note: Assuming model has it or use a default if null
+        ageGroups[key].count++;
+    });
+
+    const getAvg = (key, prop) => ageGroups[key].count ? Math.round(ageGroups[key][prop] / ageGroups[key].count) : 0;
+
     const options = {
         chart: { type: 'line', height: 320, zoom: { enabled: true } },
         stroke: { curve: 'smooth', width: 3 },
         series: [
-            { name: 'Media Edad', data: [descriptiva.edad.media, descriptiva.edad.mediana, descriptiva.edad.moda] },
-            { name: 'Media Glucosa', data: [descriptiva.glucosa.media, descriptiva.glucosa.media + 10, descriptiva.glucosa.media - 10] }
+            { name: 'Presión Sistólica', data: [getAvg('<30', 'ps'), getAvg('30-45', 'ps'), getAvg('46-60', 'ps'), getAvg('>60', 'ps')] },
+            { name: 'Glucosa', data: [getAvg('<30', 'glu'), getAvg('30-45', 'glu'), getAvg('46-60', 'glu'), getAvg('>60', 'glu')] },
+            // If frecuencia_cardiaca is not populated in the API, it will be 0. We'll leave it as requested.
+            { name: 'Frec. Cardíaca', data: [getAvg('<30', 'fc'), getAvg('30-45', 'fc'), getAvg('46-60', 'fc'), getAvg('>60', 'fc')] }
         ],
-        xaxis: { categories: ['Medición Central', 'Mediana Tendencia', 'Zona Moda'] },
-        colors: ['#4b306b', '#00d1b2']
+        xaxis: { categories: ['< 30', '30-45', '46-60', '> 60'] },
+        colors: ['#4b306b', '#00d1b2', '#FF4560']
     };
-    const chart = new ApexCharts(document.querySelector("#chart-lineas"), options);
-    chart.render();
+    if (chartLineas) chartLineas.destroy();
+    chartLineas = new ApexCharts(document.querySelector("#chart-lineas"), options);
+    chartLineas.render();
 }
 
-async function cargarMetricasMachineLearning(token) {
-    try {
-        const response = await fetch('/api/ml/model/metrics/', {
-            method: 'GET',
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const data = await response.json();
+function inicializarGraficaTorta(pacientes) {
+    let hombres = 0, mujeres = 0;
+    pacientes.forEach(p => {
+        if (p.sexo && p.sexo.toLowerCase() === 'femenino' || p.sexo === 'f') mujeres++;
+        else hombres++;
+    });
 
-        if (response.ok && data.modelo_entrenado) {
-            document.getElementById('ml-accuracy').innerText = `${data.accuracy}%`;
-            document.getElementById('ml-precision').innerText = `${data.precision}%`;
-            document.getElementById('ml-recall').innerText = `${data.recall}%`;
-            document.getElementById('ml-f1').innerText = `${data.f1_score}%`;
-
-            inicializarHeatmap(data.heatmap);
-        }
-    } catch (error) {
-        console.error("Error al cargar métricas de ML:", error);
-    }
-}
-
-function inicializarHeatmap(heatmapData) {
     const options = {
-        chart: { type: 'heatmap', height: 280, toolbar: { show: false } },
-        dataLabels: { enabled: true, style: { colors: ['#fff'] } },
-        colors: ['#4b306b'],
-        series: heatmapData,
-        xaxis: { type: 'category' }
+        chart: { type: 'donut', height: 320 },
+        labels: ['Hombres', 'Mujeres'],
+        series: [hombres, mujeres],
+        colors: ['#4267B2', '#FF4560'],
+        legend: { position: 'bottom' }
     };
-    const chart = new ApexCharts(document.querySelector("#chart-heatmap"), options);
-    chart.render();
+    if (chartTorta) chartTorta.destroy();
+    chartTorta = new ApexCharts(document.querySelector("#chart-torta"), options);
+    chartTorta.render();
 }

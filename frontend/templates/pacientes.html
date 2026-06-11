@@ -20,7 +20,7 @@
         <table class="table table-hover align-middle">
             <thead class="table-light">
                 <tr>
-                    <th>ID Paciente</th>
+                    <th>Paciente</th>
                     <th>Edad</th>
                     <th>Sexo</th>
                     <th>IMC</th>
@@ -37,12 +37,19 @@
             </tbody>
         </table>
     </div>
+    
+    <nav class="mt-4 d-flex justify-content-center">
+        <ul class="pagination pagination-sm" id="pagination-controls">
+        </ul>
+    </nav>
 </div>
 
 <script>
     document.getElementById('nav-pacientes').classList.add('active');
 
     let todosLosPacientes = [];
+    const itemsPerPage = 10;
+    let currentPatients = [];
 
     document.addEventListener("DOMContentLoaded", async function() {
         const token = localStorage.getItem('token_acceso');
@@ -83,15 +90,21 @@
         document.getElementById(inactivoId).classList.remove('active');
     }
 
-    function renderizarTabla(pacientes) {
+    function renderizarTabla(pacientes, page = 1) {
+        currentPatients = pacientes;
         const tbody = document.getElementById('tabla-pacientes');
         if (pacientes.length === 0) {
             tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">No se encontraron registros.</td></tr>`;
+            renderPagination(0, 1);
             return;
         }
 
-        tbody.innerHTML = '';
-        pacientes.forEach(p => {
+        const start = (page - 1) * itemsPerPage;
+        const end = start + itemsPerPage;
+        const paginatedItems = pacientes.slice(start, end);
+
+        let htmlContent = '';
+        paginatedItems.forEach(p => {
             const esCritico = p.presion_sistolica > 180 || p.glucosa > 300 || p.saturacion_oxigeno < 85;
 
             const badgeEstado = esCritico
@@ -100,9 +113,9 @@
 
             const filaClase = esCritico ? 'table-danger bg-opacity-10' : '';
 
-            tbody.innerHTML += `
+            htmlContent += `
                 <tr class="${filaClase}">
-                    <td class="fw-semibold">#VITA-${p.id_paciente}</td>
+                    <td class="fw-semibold">${p.nombres || ''} ${p.apellidos || ''}</td>
                     <td>${p.edad} años</td>
                     <td><span class="text-capitalize">${p.sexo}</span></td>
                     <td>${p.imc}</td>
@@ -115,6 +128,54 @@
                 </tr>
             `;
         });
+        tbody.innerHTML = htmlContent;
+        renderPagination(pacientes.length, page);
+    }
+
+    function renderPagination(totalItems, currentPage) {
+        const totalPages = Math.ceil(totalItems / itemsPerPage);
+        const paginationEl = document.getElementById('pagination-controls');
+        
+        if (totalPages <= 1) {
+            paginationEl.innerHTML = '';
+            return;
+        }
+
+        let html = '';
+        let startPage = Math.max(1, currentPage - 4);
+        let endPage = Math.min(totalPages, currentPage + 5);
+        
+        if (currentPage > 1) {
+            html += `<li class="page-item"><a class="page-link text-decoration-none text-dark fw-bold" href="#" onclick="changePage(${currentPage - 1}); return false;">&#9664;</a></li>`;
+        }
+
+        if (startPage > 1) {
+            html += `<li class="page-item"><a class="page-link text-decoration-none text-dark fw-bold" href="#" onclick="changePage(1); return false;">1</a></li>`;
+            if (startPage > 2) html += `<li class="page-item disabled"><span class="page-link border-0 text-dark fw-bold bg-transparent">...</span></li>`;
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            if (i === currentPage) {
+                html += `<li class="page-item active"><span class="page-link bg-transparent border border-danger text-danger fw-bold rounded-1 mx-1 px-3">${i}</span></li>`;
+            } else {
+                html += `<li class="page-item"><a class="page-link border-0 bg-transparent text-dark fw-bold" href="#" onclick="changePage(${i}); return false;">${i}</a></li>`;
+            }
+        }
+
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) html += `<li class="page-item disabled"><span class="page-link border-0 text-dark fw-bold bg-transparent">...</span></li>`;
+            html += `<li class="page-item"><a class="page-link border-0 bg-transparent text-dark fw-bold" href="#" onclick="changePage(${totalPages}); return false;">${totalPages}</a></li>`;
+        }
+
+        if (currentPage < totalPages) {
+            html += `<li class="page-item"><a class="page-link text-decoration-none text-dark fw-bold" href="#" onclick="changePage(${currentPage + 1}); return false;">&#9654;</a></li>`;
+        }
+
+        paginationEl.innerHTML = html;
+    }
+
+    function changePage(page) {
+        renderizarTabla(currentPatients, page);
     }
 </script>
 {% endblock %}
